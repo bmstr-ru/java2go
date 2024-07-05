@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1goskgl" targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-js (https://demo.bpmn.io)" exporterVersion="17.7.1">
+  <bpmn:collaboration id="Collaboration_0f2a232">
+    <bpmn:participant id="Participant_10yeo3m" name="Currency Rate Service" processRef="Process_1sjgnms" />
+    <bpmn:participant id="Participant_1hu1ycu" name="Total Recalculate Service" processRef="Process_0or8fm6" />
+    <bpmn:messageFlow id="Flow_0vcoaxo" sourceRef="Activity_07s6dku" targetRef="Activity_0k03i36" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_1sjgnms" isExecutable="false">
+    <bpmn:startEvent id="StartEvent_0625bqg" name="New currency rates received">
+      <bpmn:outgoing>Flow_1d76kq3</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Activity_07s6dku" name="Update rates in database">
+      <bpmn:incoming>Flow_1d76kq3</bpmn:incoming>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_1cj452f">
+        <bpmn:targetRef>DataStoreReference_1ovppdz</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_1d76kq3" sourceRef="StartEvent_0625bqg" targetRef="Activity_07s6dku" />
+    <bpmn:dataStoreReference id="DataStoreReference_1ovppdz" />
+  </bpmn:process>
+  <bpmn:process id="Process_0or8fm6">
+    <bpmn:task id="Activity_0k03i36" name="Recalculate total amount for all clients">
+      <bpmn:outgoing>Flow_1q7ppml</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_0w67k6a">
+        <bpmn:targetRef>DataStoreReference_1ovppdz</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:task>
+    <bpmn:endEvent id="Event_064h2x6">
+      <bpmn:incoming>Flow_1q7ppml</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1q7ppml" sourceRef="Activity_0k03i36" targetRef="Event_064h2x6" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_0f2a232">
+      <bpmndi:BPMNShape id="Participant_10yeo3m_di" bpmnElement="Participant_10yeo3m" isHorizontal="true">
+        <dc:Bounds x="160" y="240" width="600" height="180" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_0625bqg">
+        <dc:Bounds x="236" y="312" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="220" y="355" width="70" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_07s6dku_di" bpmnElement="Activity_07s6dku">
+        <dc:Bounds x="330" y="290" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1d76kq3_di" bpmnElement="Flow_1d76kq3">
+        <di:waypoint x="272" y="330" />
+        <di:waypoint x="330" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Participant_1hu1ycu_di" bpmnElement="Participant_1hu1ycu" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="600" height="160" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0k03i36_di" bpmnElement="Activity_0k03i36">
+        <dc:Bounds x="490" y="120" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_064h2x6_di" bpmnElement="Event_064h2x6">
+        <dc:Bounds x="642" y="142" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1q7ppml_di" bpmnElement="Flow_1q7ppml">
+        <di:waypoint x="590" y="160" />
+        <di:waypoint x="642" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="DataStoreReference_1ovppdz_di" bpmnElement="DataStoreReference_1ovppdz">
+        <dc:Bounds x="455" y="465" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0vcoaxo_di" bpmnElement="Flow_0vcoaxo">
+        <di:waypoint x="430" y="330" />
+        <di:waypoint x="460" y="330" />
+        <di:waypoint x="460" y="160" />
+        <di:waypoint x="490" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_1cj452f_di" bpmnElement="DataOutputAssociation_1cj452f">
+        <di:waypoint x="405" y="370" />
+        <di:waypoint x="464" y="465" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_0w67k6a_di" bpmnElement="DataOutputAssociation_0w67k6a">
+        <di:waypoint x="534" y="200" />
+        <di:waypoint x="494" y="465" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
