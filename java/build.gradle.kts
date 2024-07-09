@@ -25,11 +25,13 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-activemq")
     runtimeOnly("io.micrometer:micrometer-registry-prometheus")
     runtimeOnly("org.postgresql:postgresql")
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.testcontainers:postgresql")
+    testImplementation("org.apache.activemq:activemq-broker:6.1.2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
