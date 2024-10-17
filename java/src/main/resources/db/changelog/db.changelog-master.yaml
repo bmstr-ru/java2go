@@ -1,27 +1,7 @@
 databaseChangeLog:
   - changeSet:
-      id: 00-cleanup
-      author: Dmitry Ermashov
-      runAlways: true
-      preConditions:
-        - onFail: MARK_RAN
-        - tableExists:
-            tableName: deal
-        - tableExists:
-            tableName: client_exposure
-        - tableExists:
-            tableName: currency_rate
-      changes:
-        - dropTable:
-            tableName: deal
-        - dropTable:
-            tableName: client_exposure
-        - dropTable:
-            tableName: currency_rate
-  - changeSet:
       id: 01-initial-setup
       author: Dmitry Ermashov
-      runAlways: true
       changes:
         - sql:
             sql: |-

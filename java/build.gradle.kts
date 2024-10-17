@@ -1,7 +1,10 @@
+import com.google.cloud.tools.jib.api.buildplan.ImageFormat.OCI
+
 plugins {
     java
     id("org.springframework.boot") version "3.3.1"
     id("io.spring.dependency-management") version "1.1.5"
+    id("com.google.cloud.tools.jib") version "3.4.2"
 }
 
 group = "ru.bmstr"
@@ -25,9 +28,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-activemq")
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
-
     runtimeOnly("io.micrometer:micrometer-registry-prometheus")
     runtimeOnly("org.postgresql:postgresql")
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
     testImplementation("org.springframework.security:spring-security-test")
@@ -45,5 +48,19 @@ tasks.withType<Test> {
     testLogging {
         outputs.upToDateWhen { false }
         showStandardStreams = true
+    }
+}
+
+jib {
+    from {
+        image = "eclipse-temurin:21-jre-alpine"
+    }
+    to {
+        image = "java2go/java"
+        tags = setOf("latest")
+    }
+    container {
+        mainClass = "ru.bmstr.java2go.Java2GoApplication"
+        ports = listOf("8080")
     }
 }
