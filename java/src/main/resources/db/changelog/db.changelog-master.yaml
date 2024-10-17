@@ -1,0 +1,70 @@
+databaseChangeLog:
+  - changeSet:
+      id: 00-cleanup
+      author: Dmitry Ermashov
+      runAlways: true
+      preConditions:
+        - onFail: MARK_RAN
+        - tableExists:
+            tableName: deal
+        - tableExists:
+            tableName: client_exposure
+        - tableExists:
+            tableName: currency_rate
+      changes:
+        - dropTable:
+            tableName: deal
+        - dropTable:
+            tableName: client_exposure
+        - dropTable:
+            tableName: currency_rate
+  - changeSet:
+      id: 01-initial-setup
+      author: Dmitry Ermashov
+      runAlways: true
+      changes:
+        - sql:
+            sql: |-
+              create table deal
+              (
+                  id              bigserial not null primary key,
+                  deal_id         bigint    not null,
+                  client_id       bigint    not null,
+                  bought_amount   numeric   not null,
+                  bought_currency char(3)   not null,
+                  sold_amount     numeric   not null,
+                  sold_currency   char(3)   not null
+              )
+        - sql:
+            sql: |-
+              create table client_exposure
+              (
+                  id                      bigserial not null primary key,
+                  client_id               bigint    not null,
+                  total_exposure_amount   numeric   not null,
+                  total_exposure_currency char(3)   not null
+              )
+        - sql:
+            sql: create unique index client_exposure_idx on client_exposure (client_id)
+        - sql:
+            sql: |-
+              create table client_exposure_detail
+              (
+                  id                bigserial not null primary key,
+                  client_id         bigint    not null,
+                  exposure_amount   numeric   not null,
+                  exposure_currency char(3)   not null
+              )
+        - sql:
+            sql: create unique index client_exposure_detail_idx on client_exposure_detail (client_id, exposure_currency)
+        - sql:
+            sql: |-
+              create table currency_rate
+              (
+                  id              bigserial not null primary key,
+                  base_currency   char(3)   not null,
+                  quoted_currency char(3)   not null,
+                  rate            numeric   not null
+              )
+        - sql:
+            sql: create unique index currency_rate_idx on currency_rate (base_currency, quoted_currency)
