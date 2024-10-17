@@ -1,0 +1,19 @@
+services:
+  java2go-java:
+    image: "java2go/java:latest"
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: "compose"
+  postgres:
+    image: "postgres:latest"
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: "password"
+  activemq:
+    image: "apache/activemq-classic:latest"
+    ports:
+      - "8161:8161"
+      - "61616:61616"
+      - "61613:61613"
