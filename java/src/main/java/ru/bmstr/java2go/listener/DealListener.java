@@ -9,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
-import ru.bmstr.java2go.exception.DealProcessingException;
 import ru.bmstr.java2go.service.DealService;
 
 @Slf4j
@@ -26,7 +25,7 @@ public class DealListener {
         try {
             DealMessage dealMessage = objectMapper.readValue(message.getText(), DealMessage.class);
             dealService.receiveDeal(dealMessage);
-        } catch (DealProcessingException | JsonProcessingException e) {
+        } catch (JsonProcessingException e) {
             log.error("Failed to process deal: {}", message.getText(), e);
         }
     }

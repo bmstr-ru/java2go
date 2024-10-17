@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.bmstr.java2go.exception.DealProcessingException;
 import ru.bmstr.java2go.listener.DealMessage;
 import ru.bmstr.java2go.persistence.DealRecord;
 import ru.bmstr.java2go.persistence.DealRepository;
@@ -18,7 +17,7 @@ public class DealService {
     private final TotalExposureService totalExposureService;
 
     @Transactional
-    public void receiveDeal(DealMessage dealMessage) throws DealProcessingException {
+    public void receiveDeal(DealMessage dealMessage) {
         DealRecord record = DealRecord.builder()
                 .dealId(dealMessage.id())
                 .clientId(dealMessage.clientId())
