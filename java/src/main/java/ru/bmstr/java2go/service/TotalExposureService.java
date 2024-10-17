@@ -7,8 +7,6 @@ public interface TotalExposureService {
 
     void recalculateAllTotalExposure();
 
-    void recalculateTotalExposure(Long clientId);
-
     TotalExposure getClientsTotalExposure(Long clientId);
 
     void considerNewAmounts(Long clientId, MonetaryAmount... monetaryAmounts);

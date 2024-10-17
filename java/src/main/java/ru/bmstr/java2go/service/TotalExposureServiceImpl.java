@@ -38,11 +38,6 @@ public class TotalExposureServiceImpl implements TotalExposureService{
         dealsByClientId.forEach(this::recalculateTotalExposure);
     }
 
-    @Override
-    public void recalculateTotalExposure(Long clientId) {
-        recalculateTotalExposure(clientId, clientExposureDetailRepository.findAllByClientId(clientId));
-    }
-
     private void recalculateTotalExposure(Long clientId, List<ClientExposureDetailRecord> detailRecords) {
         MonetaryAmount totalExposure = detailRecords.stream()
                 .map(this::toMonetaryAmounts)
@@ -95,6 +90,7 @@ public class TotalExposureServiceImpl implements TotalExposureService{
                     .orElse(toClientExposureDetailRecord(clientId, monetaryAmount));
             clientExposureDetailRepository.save(record);
         });
+        recalculateTotalExposure(clientId, clientExposureDetailRepository.findAllByClientId(clientId));
     }
 
     private ClientExposureDetailRecord toClientExposureDetailRecord(Long clientId, MonetaryAmount monetaryAmount) {

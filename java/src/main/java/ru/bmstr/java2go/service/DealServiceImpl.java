@@ -31,6 +31,5 @@ public class DealServiceImpl implements DealService {
         log.info("New deal record saved: id={}", record.getId());
 
         totalExposureService.considerNewAmounts(dealMessage.clientId(), dealMessage.amountBought(), dealMessage.amountSold().negate());
-        totalExposureService.recalculateTotalExposure(dealMessage.clientId());
     }
 }
