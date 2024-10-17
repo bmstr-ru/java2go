@@ -11,8 +11,6 @@ import ru.bmstr.java2go.persistence.ClientExposureRecord;
 import ru.bmstr.java2go.persistence.ClientExposureRepository;
 import ru.bmstr.java2go.persistence.CurrencyRateRecord;
 import ru.bmstr.java2go.persistence.CurrencyRateRepository;
-import ru.bmstr.java2go.persistence.DealRecord;
-import ru.bmstr.java2go.persistence.DealRepository;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -20,8 +18,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 @Slf4j
 @Service
@@ -31,26 +27,25 @@ public class TotalExposureServiceImpl implements TotalExposureService{
     private static final String BASE_CURRENCY = "EUR";
     private static final MonetaryAmount ZERO = new MonetaryAmount(BigDecimal.ZERO, BASE_CURRENCY);
 
-    private final DealRepository dealRepository;
     private final CurrencyRateRepository currencyRateRepository;
     private final ClientExposureRepository clientExposureRepository;
     private final ClientExposureDetailRepository clientExposureDetailRepository;
 
     @Override
     public void recalculateAllTotalExposure() {
-        Map<Long, List<DealRecord>> dealsByClientId = StreamSupport.stream(dealRepository.findAll().spliterator(), false)
-                .collect(Collectors.groupingBy(DealRecord::getClientId, Collectors.toList()));
+        Map<Long, List<ClientExposureDetailRecord>> dealsByClientId = clientExposureDetailRepository.findAll().stream()
+                .collect(Collectors.groupingBy(ClientExposureDetailRecord::getClientId, Collectors.toList()));
         dealsByClientId.forEach(this::recalculateTotalExposure);
     }
 
     @Override
     public void recalculateTotalExposure(Long clientId) {
-        recalculateTotalExposure(clientId, dealRepository.findAllByClientId(clientId));
+        recalculateTotalExposure(clientId, clientExposureDetailRepository.findAllByClientId(clientId));
     }
 
-    private void recalculateTotalExposure(Long clientId, List<DealRecord> deals) {
-        MonetaryAmount totalExposure = deals.stream()
-                .flatMap(this::toMonetaryAmounts)
+    private void recalculateTotalExposure(Long clientId, List<ClientExposureDetailRecord> detailRecords) {
+        MonetaryAmount totalExposure = detailRecords.stream()
+                .map(this::toMonetaryAmounts)
                 .map(this::toBaseCurrency)
                 .reduce(MonetaryAmount::add)
                 .orElse(ZERO);
@@ -58,11 +53,8 @@ public class TotalExposureServiceImpl implements TotalExposureService{
         log.info("Recalculated client exposure: clientId={}", clientId);
     }
 
-    private Stream<MonetaryAmount> toMonetaryAmounts(DealRecord record) {
-        return Stream.of(
-                new MonetaryAmount(record.getBoughtAmount(), record.getBoughtCurrency()),
-                new MonetaryAmount(record.getSoldAmount().negate(), record.getSoldCurrency())
-        );
+    private MonetaryAmount toMonetaryAmounts(ClientExposureDetailRecord record) {
+        return new MonetaryAmount(record.getExposureAmount(), record.getExposureCurrency());
     }
 
     private MonetaryAmount toBaseCurrency(MonetaryAmount monetaryAmount) {

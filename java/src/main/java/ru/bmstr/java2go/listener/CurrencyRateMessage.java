@@ -5,6 +5,6 @@ import java.util.ArrayList;
 
 public class CurrencyRateMessage extends ArrayList<CurrencyRateMessage.Rate> {
 
-    public record Rate(String currencyPair, BigDecimal rate) {
+    public record Rate(String baseCurrency, String quotedCurrency, BigDecimal rate) {
     }
 }

@@ -10,4 +10,6 @@ public interface ClientExposureDetailRepository extends CrudRepository<ClientExp
     Optional<ClientExposureDetailRecord> findByClientIdAndExposureCurrency(Long clientId, String exposureCurrency);
 
     List<ClientExposureDetailRecord> findAllByClientId(Long clientId);
+
+    List<ClientExposureDetailRecord> findAll();
 }

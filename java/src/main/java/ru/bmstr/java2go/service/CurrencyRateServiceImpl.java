@@ -20,12 +20,12 @@ public class CurrencyRateServiceImpl implements CurrencyRateService {
     public void receiveRate(CurrencyRateMessage rateMessage) {
         rateMessage.forEach(rate -> {
             currencyRateRepository.saveRate(
-                    rate.currencyPair().substring(0, 3),
-                    rate.currencyPair().substring(3),
+                    rate.baseCurrency(),
+                    rate.quotedCurrency(),
                     rate.rate()
             );
 
-            log.info("New currency rate record saved: currencyPair={}, rate={}", rate.currencyPair(), rate.rate());
+            log.info("New currency rate record saved: currencyPair={}/{}, rate={}", rate.baseCurrency(), rate.quotedCurrency(), rate.rate());
         });
 
         totalExposureService.recalculateAllTotalExposure();

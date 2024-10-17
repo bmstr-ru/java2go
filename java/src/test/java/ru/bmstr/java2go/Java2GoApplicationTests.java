@@ -85,9 +85,9 @@ class Java2GoApplicationTests {
     @SneakyThrows
     private void sendRates() {
         CurrencyRateMessage rateMessage = new CurrencyRateMessage();
-        rateMessage.add(new CurrencyRateMessage.Rate("EURUSD", new BigDecimal("1.0983")));
-        rateMessage.add(new CurrencyRateMessage.Rate("EURGBP", new BigDecimal("0.845675")));
-        rateMessage.add(new CurrencyRateMessage.Rate("EURCHF", new BigDecimal("0.970912")));
+        rateMessage.add(new CurrencyRateMessage.Rate("EUR", "USD", new BigDecimal("1.0983")));
+        rateMessage.add(new CurrencyRateMessage.Rate("EUR", "GBP", new BigDecimal("0.845675")));
+        rateMessage.add(new CurrencyRateMessage.Rate("EUR", "CHF", new BigDecimal("0.970912")));
         String message = objectMapper.writeValueAsString(rateMessage);
         jmsTemplate.send(rateQueue, s -> s.createTextMessage(message));
     }
