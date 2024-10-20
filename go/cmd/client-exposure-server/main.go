@@ -3,8 +3,10 @@ package main
 import (
 	"github.com/bmstr-ru/java2go/go/internal/activemq"
 	"github.com/bmstr-ru/java2go/go/internal/deal"
+	"github.com/bmstr-ru/java2go/go/internal/exposure"
 	"github.com/bmstr-ru/java2go/go/internal/httphandler"
 	"github.com/bmstr-ru/java2go/go/internal/postgres"
+	"github.com/bmstr-ru/java2go/go/internal/rate"
 	"github.com/julienschmidt/httprouter"
 	"github.com/rs/zerolog/log"
 	"net/http"
@@ -28,10 +30,32 @@ func main() {
 	dealStorage := &postgres.DealStorageImpl{
 		Postgres: pgPool,
 	}
-	dealService := &deal.DealServiceImpl{
-		Storage: dealStorage,
+	rateStorage := &postgres.CurrencyRateStorageImpl{
+		Postgres: pgPool,
+	}
+	exposureDetailsStorage := &postgres.ClientExposureDetailStorageImpl{
+		Postgres: pgPool,
+	}
+	totalExposureStorage := &postgres.ClientExposureStorageImpl{
+		Postgres: pgPool,
 	}
 
+	exposureService := &exposure.TotalExposureServiceImpl{
+		DealStorage:           dealStorage,
+		ExposureDetailStorage: exposureDetailsStorage,
+		TotalExposureStorage:  totalExposureStorage,
+		RateStorage:           rateStorage,
+	}
+	dealService := &deal.DealServiceImpl{
+		Storage:         dealStorage,
+		ExposureService: exposureService,
+	}
+	rateService := &rate.CurrencyRateServiceImpl{
+		Storage:         rateStorage,
+		ExposureService: exposureService,
+	}
+
+	startRateListener(cfg, rateService)
 	startDealListener(cfg, dealService)
 	startMainServer(cfg)
 
@@ -46,6 +70,22 @@ func main() {
 	)
 	<-quit
 	log.Print("I am dying...")
+}
+
+func startRateListener(cfg *ConfigStruct, rateService *rate.CurrencyRateServiceImpl) {
+	ratesChan, err := activemq.StartRateListener(cfg.Mq.Url, cfg.Mq.Queue.Rates)
+	if err != nil {
+		panic(err)
+	}
+
+	go func() {
+		for r := range ratesChan {
+			err = rateService.ReceiveRate(r)
+			if err != nil {
+				log.Error().Err(err).Msg("Error while processing new rates")
+			}
+		}
+	}()
 }
 
 func startDealListener(cfg *ConfigStruct, dealService *deal.DealServiceImpl) {

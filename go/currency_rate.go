@@ -3,7 +3,11 @@ package java2go
 type CurrencyRateMessage []CurrencyRate
 
 type CurrencyRate struct {
-	BaseCurrency   string
-	QuotedCurrency string
-	Rate           float64
+	BaseCurrency   string  `json:"baseCurrency"`
+	QuotedCurrency string  `json:"quotedCurrency"`
+	Rate           float64 `json:"rate"`
+}
+
+type CurrencyRateService interface {
+	ReceiveRate(rate *CurrencyRate) error
 }

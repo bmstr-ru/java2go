@@ -10,25 +10,28 @@ type ClientExposureDetailStorageImpl struct {
 	Postgres *PgPool
 }
 
-func (s *ClientExposureDetailStorageImpl) FindByClientIdAndExposureCurrency(ctx context.Context, clientId int64, exposureCurrency string) (*java2go.ClientExposureDetail, error) {
+func (s *ClientExposureDetailStorageImpl) FindByClientIdAndExposureCurrency(ctx context.Context, clientId int64, exposureCurrency string) (*java2go.ClientExposure, error) {
 	query := `select client_id, exposure_amount, exposure_currency
 				from client_exposure_detail d
 				where d.client_id = $1
 				and d.exposure_currency = $2`
 
 	row := s.Postgres.DbPool.QueryRow(ctx, query, clientId, exposureCurrency)
-	details := java2go.ClientExposureDetail{
+	details := java2go.ClientExposure{
 		Exposure: &java2go.MonetaryAmount{},
 	}
 
 	if err := row.Scan(&details.ClientId, &details.Exposure.Amount, &details.Exposure.Currency); err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, nil
+		}
 		return nil, err
 	}
 
 	return &details, nil
 }
 
-func (s *ClientExposureDetailStorageImpl) FindAllByClientId(ctx context.Context, clientId int64) ([]*java2go.ClientExposureDetail, error) {
+func (s *ClientExposureDetailStorageImpl) FindAllByClientId(ctx context.Context, clientId int64) ([]*java2go.ClientExposure, error) {
 	query := `select client_id, exposure_amount, exposure_currency
 				from client_exposure_detail d
 				where d.client_id = $1
@@ -42,7 +45,7 @@ func (s *ClientExposureDetailStorageImpl) FindAllByClientId(ctx context.Context,
 	return mapRowsToExposureDetails(dealRows)
 }
 
-func (s *ClientExposureDetailStorageImpl) FindAll(ctx context.Context) ([]*java2go.ClientExposureDetail, error) {
+func (s *ClientExposureDetailStorageImpl) FindAll(ctx context.Context) ([]*java2go.ClientExposure, error) {
 	query := `select client_id, exposure_amount, exposure_currency
 				from client_exposure_detail d
 				order by d.client_id, d.exposure_currency`
@@ -55,10 +58,35 @@ func (s *ClientExposureDetailStorageImpl) FindAll(ctx context.Context) ([]*java2
 	return mapRowsToExposureDetails(dealRows)
 }
 
-func mapRowsToExposureDetails(rows pgx.Rows) ([]*java2go.ClientExposureDetail, error) {
-	details := []*java2go.ClientExposureDetail{}
+func (s *ClientExposureDetailStorageImpl) Save(ctx context.Context, detail *java2go.ClientExposure) error {
+	tx, err := s.Postgres.DbPool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback(ctx)
+		} else {
+			tx.Commit(ctx)
+		}
+	}()
+
+	query := `insert into client_exposure_detail
+			(client_id, exposure_currency, exposure_amount)
+			values ($1, $2, $3)
+			on conflict (client_id, exposure_currency)
+			do update set exposure_amount = $3`
+	if _, err = tx.Exec(ctx, query, detail.ClientId, detail.Exposure.Currency, detail.Exposure.Amount); err != nil {
+		return err
+	}
+	return nil
+}
+
+func mapRowsToExposureDetails(rows pgx.Rows) ([]*java2go.ClientExposure, error) {
+	details := []*java2go.ClientExposure{}
 	for rows.Next() {
-		detail := java2go.ClientExposureDetail{
+		detail := java2go.ClientExposure{
 			Exposure: &java2go.MonetaryAmount{},
 		}
 

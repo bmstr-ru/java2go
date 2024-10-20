@@ -12,6 +12,13 @@ type MonetaryAmount struct {
 	Amount   float64 `json:"amount"`
 }
 
+func (m *MonetaryAmount) Negate() MonetaryAmount {
+	return MonetaryAmount{
+		Currency: m.Currency,
+		Amount:   -m.Amount,
+	}
+}
+
 type DealService interface {
 	ReceiveDeal(deal *Deal) error
 }

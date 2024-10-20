@@ -8,7 +8,6 @@ type TotalExposure struct {
 
 type TotalExposureService interface {
 	RecalculateAllTotalExposure() error
-	RecalculateTotalExposure(clientId int64) error
 	GetClientsTotalExposure(clientId int64) *TotalExposure
-	ConsiderNewAmounts(clientId int64, monetaryAmounts []MonetaryAmount) error
+	ConsiderNewAmounts(clientId int64, monetaryAmounts ...MonetaryAmount) error
 }

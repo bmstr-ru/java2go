@@ -17,7 +17,7 @@ func (ds *DealServiceImpl) ReceiveDeal(deal *java2go.Deal) error {
 		return err
 	}
 
-	err = ds.ExposureService.RecalculateTotalExposure(deal.ClientId)
+	err = ds.ExposureService.ConsiderNewAmounts(deal.ClientId, deal.AmountBought, deal.AmountSold.Negate())
 	if err != nil {
 		return err
 	}
