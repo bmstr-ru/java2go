@@ -1,12 +1,16 @@
 package main
 
 import (
+	"fmt"
 	"github.com/bmstr-ru/java2go/go/internal/activemq"
 	"github.com/bmstr-ru/java2go/go/internal/deal"
 	"github.com/bmstr-ru/java2go/go/internal/exposure"
 	"github.com/bmstr-ru/java2go/go/internal/httphandler"
 	"github.com/bmstr-ru/java2go/go/internal/postgres"
 	"github.com/bmstr-ru/java2go/go/internal/rate"
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/julienschmidt/httprouter"
 	"github.com/rs/zerolog/log"
 	"net/http"
@@ -26,6 +30,8 @@ func main() {
 		Schema:   cfg.Db.Schema,
 	}
 	pgPool.Init()
+
+	migrateDb(pgPool)
 
 	dealStorage := &postgres.DealStorageImpl{
 		Postgres: pgPool,
@@ -112,4 +118,19 @@ func startMainServer(cfg *ConfigStruct) {
 		log.Print("I am starting...")
 		log.Fatal().Err(http.ListenAndServe(":"+cfg.ServerPort, router)).Msg("")
 	}()
+}
+
+func migrateDb(pgPool *postgres.PgPool) {
+	m, err := migrate.New(
+		"file://db/migrations",
+		fmt.Sprintf("postgres://%s:%s@%s:%d/%s?search_path=%s&sslmode=disable",
+			pgPool.Username, pgPool.Password, pgPool.Host, pgPool.Port, pgPool.Database, pgPool.Schema))
+	if err != nil {
+		panic(err)
+	}
+
+	err = m.Up()
+	if err != nil && err != migrate.ErrNoChange {
+		panic(err)
+	}
 }
