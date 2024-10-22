@@ -51,6 +51,7 @@ func startActiveMq() *artemis.Container {
 	mqContainer, err := artemis.Run(ctx,
 		"docker.io/apache/activemq-classic:6.1.2",
 		testcontainers.WithLogConsumers(&TestLogConsumer{}),
+		artemis.WithCredentials("admin", "admin"),
 	)
 	if err != nil {
 		panic(err)
