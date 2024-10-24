@@ -2,7 +2,10 @@ package main
 
 import (
 	"context"
-	"github.com/rs/zerolog/log"
+	"github.com/gavv/httpexpect/v2"
+	"net/http"
+	"net/http/httptest"
+	"os"
 	"testing"
 )
 
@@ -18,7 +21,7 @@ func Test_e2e(t *testing.T) {
 	pgPort, _ := pgContainer.MappedPort(context.Background(), "5432/tcp")
 	mqPort, _ := mqContainer.MappedPort(context.Background(), "61613/tcp")
 
-	cfg := ConfigStruct{
+	cfg := &ConfigStruct{
 		ServerPort: "0",
 		Db: Db{
 			Host:     "localhost",
@@ -36,6 +39,23 @@ func Test_e2e(t *testing.T) {
 			},
 		},
 	}
-	log.Print(cfg)
-	log.Info().Msg(pgPort.Port())
+
+	pgPool := createDbPool(cfg)
+
+	os.Chdir("../..")
+	migrateDb(pgPool)
+
+	dealService, rateService, exposureService := createServices(pgPool)
+
+	startRateListener(cfg, rateService)
+	startDealListener(cfg, dealService)
+	startMainServer(cfg, exposureService)
+
+	server := httptest.NewServer(createRouter(exposureService))
+	defer server.Close()
+
+	e := httpexpect.Default(t, server.URL)
+	e.GET("/health").
+		Expect().
+		Status(http.StatusOK).JSON().Array().IsEmpty()
 }

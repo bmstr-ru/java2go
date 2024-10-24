@@ -37,8 +37,36 @@ func (s *TotalExposureServiceImpl) RecalculateAllTotalExposure() error {
 	return nil
 }
 
-func (s *TotalExposureServiceImpl) GetClientsTotalExposure(clientId int64) *java2go.TotalExposure {
-	return nil
+func (s *TotalExposureServiceImpl) GetClientsTotalExposure(clientId int64) (*java2go.TotalExposure, error) {
+	ctx := context.WithValue(context.Background(), "clientId", clientId)
+	clientExposure, err := s.TotalExposureStorage.FindByClientId(ctx, clientId)
+	if err != nil {
+		return nil, err
+	}
+	if clientExposure == nil {
+		clientExposure = &java2go.ClientExposure{
+			ClientId: clientId,
+			Exposure: &java2go.MonetaryAmount{
+				Currency: baseCurrency,
+				Amount:   0,
+			},
+		}
+	}
+
+	exposureDetails, err := s.ExposureDetailStorage.FindAllByClientId(ctx, clientId)
+	if err != nil {
+		return nil, err
+	}
+	totalExposure := &java2go.TotalExposure{
+		ClientId: clientId,
+		Total:    *clientExposure.Exposure,
+		Amounts:  []java2go.MonetaryAmount{},
+	}
+	for _, details := range exposureDetails {
+		totalExposure.Amounts = append(totalExposure.Amounts, *details.Exposure)
+	}
+
+	return totalExposure, nil
 }
 
 func (s *TotalExposureServiceImpl) ConsiderNewAmounts(clientId int64, monetaryAmounts ...java2go.MonetaryAmount) error {

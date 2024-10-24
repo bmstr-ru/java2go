@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	java2go "github.com/bmstr-ru/java2go/go"
 	"github.com/bmstr-ru/java2go/go/internal/activemq"
 	"github.com/bmstr-ru/java2go/go/internal/deal"
 	"github.com/bmstr-ru/java2go/go/internal/exposure"
@@ -19,8 +20,33 @@ import (
 	"syscall"
 )
 
+var quit = make(chan os.Signal, 1)
+
 func main() {
 	cfg := GetDefaultConfig()
+	pgPool := createDbPool(cfg)
+
+	migrateDb(pgPool)
+
+	dealService, rateService, exposureService := createServices(pgPool)
+
+	startRateListener(cfg, rateService)
+	startDealListener(cfg, dealService)
+	startMainServer(cfg, exposureService)
+
+	signal.Notify(quit,
+		os.Interrupt,
+		os.Kill,
+		syscall.SIGHUP,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGQUIT,
+	)
+	<-quit
+	log.Print("I am dying...")
+}
+
+func createDbPool(cfg *ConfigStruct) *postgres.PgPool {
 	pgPool := &postgres.PgPool{
 		Host:     cfg.Db.Host,
 		Port:     cfg.Db.Port,
@@ -30,8 +56,10 @@ func main() {
 		Schema:   cfg.Db.Schema,
 	}
 	pgPool.Init()
+	return pgPool
+}
 
-	migrateDb(pgPool)
+func createServices(pgPool *postgres.PgPool) (java2go.DealService, java2go.CurrencyRateService, java2go.TotalExposureService) {
 
 	dealStorage := &postgres.DealStorageImpl{
 		Postgres: pgPool,
@@ -60,25 +88,10 @@ func main() {
 		Storage:         rateStorage,
 		ExposureService: exposureService,
 	}
-
-	startRateListener(cfg, rateService)
-	startDealListener(cfg, dealService)
-	startMainServer(cfg)
-
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit,
-		os.Interrupt,
-		os.Kill,
-		syscall.SIGHUP,
-		syscall.SIGINT,
-		syscall.SIGTERM,
-		syscall.SIGQUIT,
-	)
-	<-quit
-	log.Print("I am dying...")
+	return dealService, rateService, exposureService
 }
 
-func startRateListener(cfg *ConfigStruct, rateService *rate.CurrencyRateServiceImpl) {
+func startRateListener(cfg *ConfigStruct, rateService java2go.CurrencyRateService) {
 	ratesChan, err := activemq.StartRateListener(cfg.Mq.Url, cfg.Mq.Queue.Rates)
 	if err != nil {
 		panic(err)
@@ -94,7 +107,7 @@ func startRateListener(cfg *ConfigStruct, rateService *rate.CurrencyRateServiceI
 	}()
 }
 
-func startDealListener(cfg *ConfigStruct, dealService *deal.DealServiceImpl) {
+func startDealListener(cfg *ConfigStruct, dealService java2go.DealService) {
 	dealsChan, err := activemq.StartDealListener(cfg.Mq.Url, cfg.Mq.Queue.Deals)
 	if err != nil {
 		panic(err)
@@ -110,9 +123,8 @@ func startDealListener(cfg *ConfigStruct, dealService *deal.DealServiceImpl) {
 	}()
 }
 
-func startMainServer(cfg *ConfigStruct) {
-	router := httprouter.New()
-	router.GET("/health", httphandler.Health())
+func startMainServer(cfg *ConfigStruct, exposureService java2go.TotalExposureService) {
+	router := createRouter(exposureService)
 
 	go func() {
 		log.Print("I am starting...")
@@ -120,7 +132,16 @@ func startMainServer(cfg *ConfigStruct) {
 	}()
 }
 
+func createRouter(exposureService java2go.TotalExposureService) http.Handler {
+	router := httprouter.New()
+	router.GET("/health", httphandler.Health)
+	router.GET("/client/:clientId/summary", httphandler.GetClientSummary(exposureService))
+	return router
+}
+
 func migrateDb(pgPool *postgres.PgPool) {
+	workingDir, _ := os.Getwd()
+	log.Info().Msg(workingDir)
 	m, err := migrate.New(
 		"file://db/migrations",
 		fmt.Sprintf("postgres://%s:%s@%s:%d/%s?search_path=%s&sslmode=disable",
