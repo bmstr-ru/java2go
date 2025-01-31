@@ -18,7 +18,7 @@ func StartRateListener(url, queue string) (<-chan *java2go.CurrencyRate, error) 
 		for {
 			msg, err := sub.Read()
 			if err != nil {
-				log.Err(err)
+				log.Err(err).Msg("")
 				conn.Disconnect()
 				conn, sub, err = subscribe(url, queue)
 				continue
