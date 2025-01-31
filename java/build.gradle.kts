@@ -1,10 +1,8 @@
-import com.google.cloud.tools.jib.api.buildplan.ImageFormat.OCI
-
 plugins {
     java
-    id("org.springframework.boot") version "3.3.1"
-    id("io.spring.dependency-management") version "1.1.5"
-    id("com.google.cloud.tools.jib") version "3.4.2"
+    id("org.springframework.boot") version "3.4.2"
+    id("io.spring.dependency-management") version "1.1.4"
+    id("com.google.cloud.tools.jib") version "3.4.4"
 }
 
 group = "ru.bmstr"
