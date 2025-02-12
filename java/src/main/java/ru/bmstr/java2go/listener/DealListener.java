@@ -32,8 +32,8 @@ public class DealListener {
         };
         log.info("Received deal message: {}", strMessage);
         try {
-            DealMessage dealMessage = objectMapper.readValue(strMessage, DealMessage.class);
-            dealService.receiveDeal(dealMessage);
+            Deal deal = objectMapper.readValue(strMessage, Deal.class);
+            dealService.receiveDeal(deal);
         } catch (JsonProcessingException e) {
             log.error("Failed to process deal: {}", strMessage, e);
         }

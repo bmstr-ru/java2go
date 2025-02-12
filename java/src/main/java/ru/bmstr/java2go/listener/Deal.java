@@ -4,7 +4,7 @@ import lombok.Builder;
 import ru.bmstr.java2go.model.MonetaryAmount;
 
 @Builder
-public record DealMessage(
+public record Deal(
         Long id,
         Long clientId,
         MonetaryAmount amountBought,

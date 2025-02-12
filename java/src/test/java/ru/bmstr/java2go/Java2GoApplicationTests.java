@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.bmstr.java2go.listener.CurrencyRateMessage;
-import ru.bmstr.java2go.listener.DealMessage;
+import ru.bmstr.java2go.listener.Deal;
 import ru.bmstr.java2go.model.MonetaryAmount;
 import ru.bmstr.java2go.persistence.ClientExposureRepository;
 import ru.bmstr.java2go.persistence.CurrencyRateRepository;
@@ -99,13 +99,13 @@ class Java2GoApplicationTests {
 
     @SneakyThrows
     private void sendDeal() {
-        DealMessage dealMessage = DealMessage.builder()
+        Deal deal = Deal.builder()
                 .id(7L)
                 .clientId(CLIENT_ID)
                 .amountBought(USD_BOUGHT)
                 .amountSold(EUR_SOLD)
                 .build();
-        String message = objectMapper.writeValueAsString(dealMessage);
+        String message = objectMapper.writeValueAsString(deal);
         jmsTemplate.send(dealQueue, s -> s.createTextMessage(message));
     }
 

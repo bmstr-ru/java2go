@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.bmstr.java2go.listener.DealMessage;
+import ru.bmstr.java2go.listener.Deal;
 import ru.bmstr.java2go.persistence.DealRecord;
 import ru.bmstr.java2go.persistence.DealRepository;
 
@@ -18,18 +18,18 @@ public class DealServiceImpl implements DealService {
 
     @Override
     @Transactional
-    public void receiveDeal(DealMessage dealMessage) {
+    public void receiveDeal(Deal deal) {
         DealRecord record = DealRecord.builder()
-                .dealId(dealMessage.id())
-                .clientId(dealMessage.clientId())
-                .boughtAmount(dealMessage.amountBought().amount())
-                .boughtCurrency(dealMessage.amountBought().currency())
-                .soldAmount(dealMessage.amountSold().amount())
-                .soldCurrency(dealMessage.amountSold().currency())
+                .dealId(deal.id())
+                .clientId(deal.clientId())
+                .boughtAmount(deal.amountBought().amount())
+                .boughtCurrency(deal.amountBought().currency())
+                .soldAmount(deal.amountSold().amount())
+                .soldCurrency(deal.amountSold().currency())
                 .build();
         record = dealRepository.save(record);
         log.info("New deal record saved: id={}", record.getId());
 
-        totalExposureService.considerNewAmounts(dealMessage.clientId(), dealMessage.amountBought(), dealMessage.amountSold().negate());
+        totalExposureService.considerNewAmounts(deal.clientId(), deal.amountBought(), deal.amountSold().negate());
     }
 }

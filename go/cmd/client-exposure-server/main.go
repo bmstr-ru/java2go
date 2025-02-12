@@ -61,32 +61,44 @@ func createDbPool(cfg *ConfigStruct) *postgres.PgPool {
 
 func createServices(pgPool *postgres.PgPool) (java2go.DealService, java2go.CurrencyRateService, java2go.TotalExposureService) {
 
+	// implements DealStorage interface
 	dealStorage := &postgres.DealStorageImpl{
 		Postgres: pgPool,
 	}
+
+	// implements CurrencyRateStorage interface
 	rateStorage := &postgres.CurrencyRateStorageImpl{
 		Postgres: pgPool,
 	}
+
+	// implements ClientExposureDetailStorage interface
 	exposureDetailsStorage := &postgres.ClientExposureDetailStorageImpl{
 		Postgres: pgPool,
 	}
+
+	// implements ClientExposureStorage interface
 	totalExposureStorage := &postgres.ClientExposureStorageImpl{
 		Postgres: pgPool,
 	}
 
+	// implements TotalExposureService interface
 	exposureService := &exposure.TotalExposureServiceImpl{
-		DealStorage:           dealStorage,
-		ExposureDetailStorage: exposureDetailsStorage,
-		TotalExposureStorage:  totalExposureStorage,
-		RateStorage:           rateStorage,
+		DealStorage:           dealStorage,            // must implement DealStorage interface
+		ExposureDetailStorage: exposureDetailsStorage, // must implement ClientExposureDetailStorage interface
+		TotalExposureStorage:  totalExposureStorage,   // must implement ClientExposureStorage interface
+		RateStorage:           rateStorage,            // must implement CurrencyRateStorage interface
 	}
+
+	// implements DealService interface
 	dealService := &deal.DealServiceImpl{
-		Storage:         dealStorage,
-		ExposureService: exposureService,
+		Storage:         dealStorage,     // must implement DealStorage interface
+		ExposureService: exposureService, // must implement TotalExposureService interface
 	}
+
+	// implements CurrencyRateService interface
 	rateService := &rate.CurrencyRateServiceImpl{
-		Storage:         rateStorage,
-		ExposureService: exposureService,
+		Storage:         rateStorage,     // must implement CurrencyRateStorage interface
+		ExposureService: exposureService, // must implement TotalExposureService interface
 	}
 	return dealService, rateService, exposureService
 }
