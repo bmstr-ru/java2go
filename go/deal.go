@@ -10,8 +10,8 @@ type Deal struct {
 }
 
 func (d *Deal) String() string {
-	return fmt.Sprintf("deal[id=%d, clientId=%d, amountBought=%s, amountSold=%s]",
-		d.Id, d.ClientId, d.AmountBought.String(), d.AmountSold.String())
+	return fmt.Sprintf("deal[id=%d, clientId=%d, amountBought=%v, amountSold=%v]",
+		d.Id, d.ClientId, d.AmountBought, d.AmountSold)
 }
 
 type MonetaryAmount struct {
